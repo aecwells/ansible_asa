@@ -1,0 +1,77 @@
+---
+- name: Blue-Green Deployment with Cisco ASA for Multiple Domains
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Iterate over each domain
+      loop: "{{ domains }}"
+      vars:
+        domain: "{{ item.name }}"
+        sanitized_domain: "{{ domain | replace('.', '_') }}"
+        current_active_env: "{{ item.current_active_env }}"
+        blue_vms: "{{ item.blue_vms }}"
+        green_vms: "{{ item.green_vms }}"
+      tasks:
+        - name: Determine the inactive environment for {{ domain }}
+          set_fact:
+            inactive_env: "{{ 'green' if current_active_env == 'blue' else 'blue' }}"
+
+        - name: Set inactive environment variables for {{ domain }}
+          set_fact:
+            inactive_vms: "{{ green_vms if inactive_env == 'green' else blue_vms }}"
+
+        - name: Print current active environment for {{ domain }}
+          debug:
+            msg: "Domain: {{ domain }} - Current active environment: {{ current_active_env }}"
+
+        - name: Print new environment to activate for {{ domain }}
+          debug:
+            msg: "Domain: {{ domain }} - Switching to environment: {{ inactive_env }}"
+
+        - name: Update ASA configuration to use the new environment for {{ domain }}
+          cisco.asa.asa_config:
+            lines:
+              - "object network {{ sanitized_domain }}_{{ inactive_env }}_http"
+              - "host {{ item }}"
+              - "nat (inside,outside) static interface service tcp 80 80"
+              - "object network {{ sanitized_domain }}_{{ inactive_env }}_https"
+              - "host {{ item }}"
+              - "nat (inside,outside) static interface service tcp 443 443"
+            with_items: "{{ inactive_vms }}"
+            provider:
+              host: "{{ asa_host }}"
+              username: "{{ asa_user }}"
+              ssh_keyfile: "{{ asa_ssh_key }}"
+              authorize: yes
+            save_config: yes
+
+        - name: Verify the new environment is serving traffic for {{ domain }} on HTTP (port 80)
+          uri:
+            url: "http://{{ domain }}"
+            status_code: 200
+          register: http_result
+          until: http_result is succeeded or http_result.status == 301
+          retries: 5
+          delay: 10
+
+        - name: Verify the new environment is serving traffic for {{ domain }} on HTTPS (port 443)
+          uri:
+            url: "https://{{ domain }}"
+            status_code: 200
+          register: https_result
+          until: https_result is succeeded
+          retries: 5
+          delay: 10
+
+        - name: Update current active environment for {{ domain }}
+          set_fact:
+            item.current_active_env: "{{ inactive_env }}"
+
+        - name: Print completion message for {{ domain }}
+          debug:
+            msg: |
+              Domain: {{ domain }}
+              - Deployment completed.
+              - Current active environment: {{ item.current_active_env }}
+              - HTTP (port 80) verification result: {{ http_result }}
+              - HTTPS (port 443) verification result: {{ https_result }}
