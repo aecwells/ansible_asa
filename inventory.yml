@@ -1,0 +1,26 @@
+all:
+  vars:
+    asa_host: "asa.example.com"  # The IP or hostname of your ASA device
+    asa_user: "admin"  # Your ASA username
+    asa_ssh_key: "/path/to/your/ssh/key"  # Path to your SSH key
+    domains:
+      - name: "example1.com"
+        current_active_env: "blue"
+        blue_vms:
+          - "192.168.1.101"
+          - "192.168.1.102"
+        green_vms:
+          - "192.168.1.201"
+          - "192.168.1.202"
+      - name: "example2.com"
+        current_active_env: "green"
+        blue_vms:
+          - "192.168.2.101"
+          - "192.168.2.102"
+        green_vms:
+          - "192.168.2.201"
+          - "192.168.2.202"
+  children:
+    localhost:
+      hosts:
+        localhost
