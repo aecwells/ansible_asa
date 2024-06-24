@@ -150,7 +150,7 @@ The playbook (`multi_domain_blue_green_deployment.yml`) performs the following t
 1. Prepare the Inventory File: Update inventory.yml with your ASA device details, SSH key path, and domain configurations.
 2. Run the Playbook: Execute the playbook using the following command:
 ```bash
-ansible-playbook -i inventory.yml playbook.yml
+ansible-playbook -i inventory.yml multi_domain_blue_green_deployment.yml
 ```
 3. Verify Deployment: The playbook will automatically verify that the new environment is serving traffic correctly on both HTTP and HTTPS.
 
