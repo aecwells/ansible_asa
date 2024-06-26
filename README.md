@@ -17,6 +17,7 @@ all:
     asa_host: "asa.example.com"  # The IP or hostname of your ASA device
     asa_user: "admin"  # Your ASA username
     asa_ssh_key: "/path/to/your/ssh/key"  # Path to your SSH key
+    auth_pass: "{{ asa_enable_password }}" # password for Enable
     domains:
       - name: "example1.com"
         current_active_env: "blue"
@@ -45,6 +46,7 @@ all:
 * `asa_host`: The IP or hostname of your ASA device.
 * `asa_user`: The username for ASA login.
 * `asa_ssh_key`: The path to your SSH key for ASA authentication.
+* `asa_enable_password`: The password for ASA Enable authentication
 * `domains`: A list of domain configurations. Each domain has:
   * `name`: The domain name.
   * `current_active_env`: The currently active environment (blue or green).
@@ -111,6 +113,7 @@ The playbook (`multi_domain_blue_green_deployment.yml`) performs the following t
               username: "{{ asa_user }}"
               ssh_keyfile: "{{ asa_ssh_key }}"
               authorize: yes
+              auth_pass: "{{ asa_enable_password }}"
             save_config: yes
 
         - name: Verify the new environment is serving traffic for {{ domain }} on HTTP (port 80)
