@@ -43,6 +43,7 @@
               username: "{{ asa_user }}"
               ssh_keyfile: "{{ asa_ssh_key }}"
               authorize: yes
+              auth_pass: "{{ asa_enable_password }}"
             save_config: yes
 
         - name: Verify the new environment is serving traffic for {{ domain }} on HTTP (port 80)
