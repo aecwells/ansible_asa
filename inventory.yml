@@ -3,6 +3,7 @@ all:
     asa_host: "asa.example.com"  # The IP or hostname of your ASA device
     asa_user: "admin"  # Your ASA username
     asa_ssh_key: "/path/to/your/ssh/key"  # Path to your SSH key
+    auth_pass: "{{ asa_enable_password }}" # Password to enable
     domains:
       - name: "example1.com"
         current_active_env: "blue"
